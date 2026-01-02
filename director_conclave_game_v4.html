@@ -1,0 +1,2879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Director Space Explorer | Corporate Training Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        #scene-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Enhanced Login Screen */
+        #login-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, rgba(8, 18, 38, 0.98), rgba(4, 12, 28, 0.98));
+            padding: 40px;
+            border-radius: 25px;
+            border: 2px solid rgba(0, 238, 255, 0.7);
+            box-shadow: 
+                0 0 50px rgba(0, 238, 255, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(25px);
+            width: 90%;
+            max-width: 520px;
+            z-index: 100;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+            50% { transform: translate(-50%, -50%) translateY(-15px); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .logo h1 {
+            background: linear-gradient(135deg, #00eeff, #0066ff, #aa66ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.6rem;
+            margin-bottom: 10px;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 30px rgba(0, 238, 255, 0.5);
+        }
+
+        .logo p {
+            color: #88aaff;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .logo .subtitle {
+            color: #4A90E2;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            color: #00eeff;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group label i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(0, 15, 35, 0.9);
+            border: 2px solid #4488ff;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.05rem;
+            transition: all 0.4s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            padding: 15px;
+            background: rgba(0, 20, 45, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(68, 136, 255, 0.3);
+        }
+
+        .checkbox-group input {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            accent-color: #00eeff;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #0066ff, #00aaff, #00eeff);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.4s;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, #00eeff, #0066ff);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 238, 255, 0.8);
+        }
+
+        .login-btn.secondary {
+            background: linear-gradient(135deg, #4A90E2, #0066ff);
+        }
+
+        .login-btn i {
+            margin-right: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-group .login-btn {
+            flex: 1;
+        }
+
+        /* Enhanced Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            color: white;
+        }
+
+        .launch-sequence {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #00eeff;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .launch-bar {
+            width: 300px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+            border: 1px solid rgba(0, 238, 255, 0.3);
+        }
+
+        .launch-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #0066ff, #00eeff);
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Enhanced Game HUD */
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(145deg, rgba(0, 15, 35, 0.95), rgba(4, 12, 28, 0.95));
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(0, 238, 255, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 201;
+            color: white;
+            min-width: 300px;
+            box-shadow: 
+                0 5px 20px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .hud-row:last-child {
+            border-bottom: none;
+        }
+
+        .hud-label {
+            color: #88aaff;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .hud-label i {
+            margin-right: 8px;
+            font-size: 1rem;
+        }
+
+        .hud-value {
+            color: #00eeff;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+        }
+
+        .score-display {
+            font-size: 2rem !important;
+            color: #ffaa00 !important;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 15px;
+            background: rgba(0, 20, 40, 0.6);
+            border-radius: 10px;
+            padding: 8px;
+            border: 1px solid rgba(0, 238, 255, 0.2);
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            color: #aaccff;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(0, 30, 60, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0066ff, #00eeff);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* DRAG & DROP QUIZ PANEL */
+        #quiz-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, rgba(0, 15, 35, 0.98), rgba(4, 12, 28, 0.98));
+            padding: 30px;
+            border-radius: 25px;
+            border: 3px solid #4A90E2;
+            backdrop-filter: blur(20px);
+            z-index: 400;
+            color: white;
+            width: 95%;
+            max-width: 1100px;
+            height: 85vh;
+            display: none;
+            box-shadow: 
+                0 0 60px rgba(74, 144, 226, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: quizAppear 0.8s ease-out;
+            overflow-y: auto;
+        }
+
+        @keyframes quizAppear {
+            from { opacity: 0; transform: translate(-50%, -40%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(74, 144, 226, 0.5);
+        }
+
+        .quiz-header h2 {
+            color: #4A90E2;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(74, 144, 226, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quiz-header h2 i {
+            margin-right: 15px;
+        }
+
+        .quiz-header p {
+            color: #88aaff;
+            font-size: 1.1rem;
+        }
+
+        /* Drag & Drop Layout */
+        .drag-drop-container {
+            display: flex;
+            height: calc(100% - 150px);
+            gap: 25px;
+        }
+
+        /* Director Images Grid */
+        .directors-grid {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 15px;
+            background: rgba(20, 40, 80, 0.3);
+            border-radius: 15px;
+            border: 2px solid rgba(74, 144, 226, 0.3);
+            overflow-y: auto;
+        }
+
+        .director-card {
+            background: linear-gradient(135deg, rgba(30, 60, 120, 0.8), rgba(20, 40, 90, 0.8));
+            border: 2px solid #4488ff;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 280px;
+        }
+
+        .director-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #4A90E2, #0066ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            border: 3px solid #00eeff;
+            box-shadow: 0 0 20px rgba(0, 238, 255, 0.5);
+            margin-bottom: 15px;
+        }
+
+        .director-info {
+            margin-bottom: 15px;
+        }
+
+        .director-title {
+            color: #aaccff;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .director-hint {
+            color: #88aaff;
+            font-size: 0.85rem;
+            font-style: italic;
+            background: rgba(0, 20, 40, 0.5);
+            padding: 6px 10px;
+            border-radius: 8px;
+            border-left: 3px solid #4A90E2;
+            margin-bottom: 10px;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            width: 100%;
+            min-height: 50px;
+            background: rgba(0, 20, 40, 0.4);
+            border: 2px dashed #4488ff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            transition: all 0.3s;
+            padding: 10px;
+        }
+
+        .drop-zone.highlight {
+            border-color: #00eeff;
+            background: rgba(0, 238, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 238, 255, 0.3);
+        }
+
+        .drop-zone.correct {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .drop-zone.incorrect {
+            border-color: #ff5555;
+            background: rgba(255, 85, 85, 0.1);
+        }
+
+        .dropped-name {
+            color: #00eeff;
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 8px 15px;
+            background: rgba(0, 30, 60, 0.7);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 238, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #ff5555;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0 5px;
+        }
+
+        .drop-placeholder {
+            color: #88aaff;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .drop-placeholder i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Names Panel */
+        .names-panel {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(30, 60, 120, 0.9), rgba(20, 40, 90, 0.9));
+            border-radius: 15px;
+            border: 2px solid #4A90E2;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .names-panel h3 {
+            color: #00eeff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .names-panel h3 i {
+            margin-right: 10px;
+        }
+
+        .names-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .name-item {
+            background: rgba(0, 30, 60, 0.8);
+            border: 2px solid #4488ff;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: move;
+            transition: all 0.3s;
+            text-align: center;
+            user-select: none;
+        }
+
+        .name-item:hover {
+            background: rgba(50, 100, 200, 0.9);
+            border-color: #00eeff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 238, 255, 0.3);
+        }
+
+        .name-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .name-item.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            background: rgba(0, 30, 60, 0.4);
+            border-color: rgba(68, 136, 255, 0.3);
+        }
+
+        .name-item.used:hover {
+            transform: none;
+            box-shadow: none;
+            background: rgba(0, 30, 60, 0.4);
+        }
+
+        /* Quiz Stats & Controls */
+        .quiz-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(30, 60, 120, 0.4), rgba(20, 40, 90, 0.4));
+            border-radius: 10px;
+            border: 1px solid rgba(74, 144, 226, 0.3);
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            color: #00eeff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #88aaff;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .quiz-feedback {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            min-height: 50px;
+            padding: 15px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.5), rgba(10, 30, 60, 0.5));
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .correct-feedback {
+            color: #00ff88;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.7);
+            animation: feedbackGlow 1s infinite alternate;
+        }
+
+        .incorrect-feedback {
+            color: #ff5555;
+            text-shadow: 0 0 15px rgba(255, 85, 85, 0.7);
+        }
+
+        @keyframes feedbackGlow {
+            from { opacity: 0.8; }
+            to { opacity: 1; }
+        }
+
+        .quiz-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(74, 144, 226, 0.3);
+        }
+
+        .quiz-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #4A90E2, #0066ff);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quiz-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(74, 144, 226, 0.6);
+        }
+
+        .quiz-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .quiz-btn i {
+            margin-right: 10px;
+        }
+
+        /* Enhanced Completion Panel */
+        #completion-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, rgba(0, 15, 35, 0.98), rgba(4, 12, 28, 0.98));
+            padding: 40px;
+            border-radius: 30px;
+            border: 4px solid #ffaa00;
+            backdrop-filter: blur(20px);
+            z-index: 500;
+            color: white;
+            width: 90%;
+            max-width: 750px;
+            display: none;
+            text-align: center;
+            box-shadow: 
+                0 0 60px rgba(255, 170, 0, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: quizAppear 0.8s ease-out;
+        }
+
+        .completion-header {
+            margin-bottom: 30px;
+        }
+
+        .completion-header h2 {
+            color: #ffaa00;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .completion-header h2 i {
+            margin-right: 15px;
+        }
+
+        .completion-badge {
+            font-size: 4rem;
+            margin: 20px 0;
+            animation: badgeFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes badgeFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, rgba(30, 60, 120, 0.6), rgba(20, 40, 90, 0.6));
+            border: 2px solid #4488ff;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            border-color: #00eeff;
+            box-shadow: 0 5px 20px rgba(0, 238, 255, 0.4);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            color: #00eeff;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 0 0 10px rgba(0, 238, 255, 0.5);
+        }
+
+        .stat-label {
+            color: #88aaff;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(30, 60, 120, 0.4), rgba(20, 40, 90, 0.4));
+            border-radius: 15px;
+            border: 2px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .badge-container h3 {
+            color: #ffaa00;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-container h3 i {
+            margin-right: 10px;
+        }
+
+        .badge-description {
+            color: #aaccff;
+            line-height: 1.5;
+        }
+
+        .completion-btn {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #ffaa00, #ff7700);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto 0;
+        }
+
+        .completion-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 170, 0, 0.6);
+        }
+
+        .completion-btn i {
+            margin-right: 10px;
+        }
+
+        /* Planet Landing Effect */
+        .planet-landing {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(74, 144, 226, 0.3) 0%, transparent 70%);
+            z-index: 350;
+            display: none;
+            animation: pulseLanding 2s infinite;
+        }
+
+        @keyframes pulseLanding {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Enhanced Controls */
+        #mission-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background: linear-gradient(145deg, rgba(0, 15, 35, 0.95), rgba(4, 12, 28, 0.95));
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(0, 238, 255, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 201;
+            box-shadow: 
+                0 5px 20px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            background: linear-gradient(135deg, rgba(0, 30, 60, 0.9), rgba(0, 20, 50, 0.9));
+            border: 2px solid #4488ff;
+            border-radius: 10px;
+            color: #00eeff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, rgba(68, 136, 255, 0.3), rgba(0, 238, 255, 0.3));
+            border-color: #00eeff;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 238, 255, 0.6);
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Crosshair */
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 2px solid #00eeff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 150;
+            box-shadow: 0 0 20px rgba(0, 238, 255, 0.5);
+        }
+
+        .crosshair::before, .crosshair::after {
+            content: '';
+            position: absolute;
+            background: #00eeff;
+        }
+
+        .crosshair::before {
+            top: 50%;
+            left: -20px;
+            width: 40px;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+
+        .crosshair::after {
+            left: 50%;
+            top: -20px;
+            width: 2px;
+            height: 40px;
+            transform: translateX(-50%);
+        }
+
+        /* Enhanced Target Indicator */
+        .target-indicator {
+            position: absolute;
+            color: #ffaa00;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.8);
+            z-index: 160;
+            pointer-events: none;
+            animation: pulseTarget 1.5s infinite;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: linear-gradient(145deg, rgba(0, 15, 35, 0.9), rgba(4, 12, 28, 0.9));
+            border-radius: 12px;
+            border: 2px solid rgba(255, 170, 0, 0.5);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+        }
+
+        .target-indicator i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+
+        @keyframes pulseTarget {
+            0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* Landing Transition */
+        .landing-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 600;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+
+        .landing-message {
+            font-size: 2.5rem;
+            color: #00eeff;
+            margin-bottom: 30px;
+            text-align: center;
+            animation: landingText 2s ease-out;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        @keyframes landingText {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .landing-progress {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 238, 255, 0.3);
+        }
+
+        .landing-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0066ff, #00eeff);
+            width: 0%;
+            transition: width 1s ease-out;
+            border-radius: 4px;
+        }
+
+        /* Landing Countdown */
+        .landing-countdown {
+            font-size: 5rem;
+            color: #ffaa00;
+            text-shadow: 0 0 20px rgba(255, 170, 0, 0.7);
+            animation: countdownPulse 1s infinite;
+            margin-bottom: 30px;
+            font-family: 'Courier New', monospace;
+        }
+
+        @keyframes countdownPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        /* Enhanced Quiz Timer */
+        .quiz-timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, rgba(0, 15, 35, 0.95), rgba(4, 12, 28, 0.95));
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 2px solid #4A90E2;
+            color: #00eeff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            z-index: 401;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+        }
+
+        .quiz-timer i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+
+        /* Notification System */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, rgba(0, 15, 35, 0.95), rgba(4, 12, 28, 0.95));
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid #4A90E2;
+            color: white;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.5s ease-out;
+            max-width: 350px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification i {
+            margin-right: 15px;
+            font-size: 1.5rem;
+        }
+
+        .notification.success i { color: #00ff88; }
+        .notification.warning i { color: #ffaa00; }
+        .notification.info i { color: #00eeff; }
+
+        .notification-content h4 {
+            margin-bottom: 5px;
+            color: #00eeff;
+        }
+
+        .notification-content p {
+            color: #aaccff;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1200px) {
+            .drag-drop-container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .directors-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .names-panel {
+                max-height: 300px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .directors-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            #quiz-panel {
+                width: 98%;
+                height: 90vh;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #hud {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                padding: 15px;
+                min-width: auto;
+                width: calc(100% - 20px);
+            }
+            
+            .directors-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            #mission-controls {
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 15px;
+            }
+            
+            .control-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+                margin: 8px;
+            }
+            
+            .quiz-btn {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            
+            .completion-btn {
+                padding: 15px 30px;
+                font-size: 1.1rem;
+            }
+            
+            .login-btn {
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+            
+            #login-container {
+                padding: 30px 20px;
+            }
+            
+            .logo h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quiz-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .quiz-btn {
+                width: 100%;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .target-indicator {
+                font-size: 1rem;
+                padding: 8px 16px;
+                top: 80px;
+            }
+            
+            .landing-countdown {
+                font-size: 3.5rem;
+            }
+            
+            .landing-message {
+                font-size: 1.8rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .director-card {
+                min-height: 250px;
+                padding: 15px;
+            }
+            
+            .director-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification System -->
+    <div id="notification" class="notification">
+        <i class="fas fa-info-circle"></i>
+        <div class="notification-content">
+            <h4>Mission Update</h4>
+            <p>New director identification challenge available!</p>
+        </div>
+    </div>
+
+    <!-- Landing Transition Screen -->
+    <div id="landing-transition" class="landing-transition">
+        <div class="landing-countdown" id="landing-countdown">3</div>
+        <div class="landing-message">PREPARING IDENTIFICATION CHALLENGE...</div>
+        <div class="landing-progress">
+            <div class="landing-progress-bar" id="landing-progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="launch-sequence" id="launch-text">INITIALIZING SYSTEMS...</div>
+        <div class="launch-bar">
+            <div class="launch-progress" id="launch-progress"></div>
+        </div>
+    </div>
+
+    <!-- Planet Landing Effect -->
+    <div id="planet-landing" class="planet-landing"></div>
+
+    <!-- 3D Scene -->
+    <div id="scene-container"></div>
+    <div class="crosshair"></div>
+
+    <!-- Login Screen -->
+    <div id="login-container">
+        <div class="logo">
+            <h1><i class="fas fa-rocket"></i> DIRECTOR SPACE EXPLORER</h1>
+            <p>Navigate the galaxy of corporate leadership</p>
+            <div class="subtitle">Enterprise Technology & Performance Division</div>
+        </div>
+        
+        <div class="input-group">
+            <label for="email"><i class="fas fa-envelope"></i> YOUR CORPORATE EMAIL ID</label>
+            <input type="email" id="email" placeholder="Enter your corporate email" autocomplete="off" value="test@company.com">
+        </div>
+        
+        <div class="input-group">
+            <label for="division"><i class="fas fa-sitemap"></i> DIVISION (L2)</label>
+            <select id="division">
+                <option value="">Select Division</option>
+                <option value="etp" selected>Enterprise Technology and Performance</option>
+                <option value="consulting">Consulting</option>
+                <option value="advisory">Advisory</option>
+                <option value="audit">Audit & Assurance</option>
+            </select>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="terms" checked>
+            <label for="terms">I agree to the Survey Terms & Conditions and data privacy policy</label>
+        </div>
+        
+        <div class="btn-group">
+            <button class="login-btn" id="loginBtn"><i class="fas fa-play-circle"></i> START MISSION</button>
+            <button class="login-btn secondary" id="demoBtn"><i class="fas fa-bolt"></i> QUICK DEMO</button>
+        </div>
+        
+        <div style="margin-top: 25px; text-align: center; color: #88aaff; font-size: 0.9rem;">
+            <i class="fas fa-info-circle"></i> This training game helps you identify key leaders in your division
+        </div>
+    </div>
+
+    <!-- Game HUD -->
+    <div id="hud" style="display: none;">
+        <div class="hud-row">
+            <span class="hud-label"><i class="fas fa-satellite"></i> MISSION:</span>
+            <span class="hud-value" id="mission-status">EXPLORING</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label"><i class="fas fa-star"></i> SCORE:</span>
+            <span class="hud-value score-display" id="score-display">0</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label"><i class="fas fa-building"></i> DEPARTMENT:</span>
+            <span class="hud-value" id="current-dept">Technology Practice</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label"><i class="fas fa-user-tie"></i> DIRECTORS IDENTIFIED:</span>
+            <span class="hud-value" id="directors-identified">0/6</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label"><i class="fas fa-clock"></i> TIME:</span>
+            <span class="hud-value" id="mission-time">00:00</span>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>Mission Progress</span>
+                <span id="progress-percentage">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Timer -->
+    <div class="quiz-timer" id="quiz-timer"><i class="fas fa-hourglass-half"></i> 180s</div>
+
+    <!-- Drag & Drop Quiz Panel -->
+    <div id="quiz-panel">
+        <div class="quiz-header">
+            <h2><i class="fas fa-arrows-alt"></i> DIRECTOR MATCHING CHALLENGE</h2>
+            <p id="quiz-dept">Technology Practice | Drag names to match the directors</p>
+        </div>
+        
+        <div class="drag-drop-container">
+            <!-- Director Images Grid (Left Side) -->
+            <div class="directors-grid" id="directors-grid">
+                <!-- Director cards will be generated here -->
+            </div>
+            
+            <!-- Names Panel (Right Side) -->
+            <div class="names-panel">
+                <h3><i class="fas fa-list"></i> AVAILABLE DIRECTORS</h3>
+                <div class="names-list" id="names-list">
+                    <!-- Name items will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="quiz-stats">
+            <div class="stat-box">
+                <div class="stat-value" id="quiz-score">0</div>
+                <div class="stat-label">SCORE</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="quiz-matched">0/6</div>
+                <div class="stat-label">MATCHED</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="quiz-time-left">180s</div>
+                <div class="stat-label">TIME LEFT</div>
+            </div>
+        </div>
+        
+        <div class="quiz-feedback" id="quiz-feedback">
+            <div id="feedback-text">Drag and drop director names onto the empty slots below each avatar</div>
+        </div>
+        
+        <div class="quiz-controls">
+            <button class="quiz-btn" id="reset-btn"><i class="fas fa-redo"></i> Reset All</button>
+            <button class="quiz-btn" id="skip-btn"><i class="fas fa-forward"></i> Skip Challenge</button>
+            <button class="quiz-btn" id="submit-btn"><i class="fas fa-paper-plane"></i> Submit Answers</button>
+        </div>
+    </div>
+
+    <!-- Completion Panel -->
+    <div id="completion-panel">
+        <div class="completion-header">
+            <h2><i class="fas fa-trophy"></i> CHALLENGE COMPLETED!</h2>
+            <p id="completion-dept">You have successfully identified all Technology Practice Directors</p>
+            <div class="completion-badge">🎯</div>
+        </div>
+        
+        <div class="stats-grid" id="completion-stats">
+            <!-- Stats will be populated dynamically -->
+        </div>
+        
+        <div class="badge-container">
+            <h3><i class="fas fa-award"></i> TECHNOLOGY EXPERT BADGE EARNED!</h3>
+            <p class="badge-description">"Demonstrated exceptional knowledge of technology leadership team and their key responsibilities within the Enterprise Technology & Performance division."</p>
+        </div>
+        
+        <button class="completion-btn" id="return-to-hub"><i class="fas fa-arrow-left"></i> Continue Exploring Space</button>
+    </div>
+
+    <!-- Controls -->
+    <div id="mission-controls" style="display: none;">
+        <div class="control-row">
+            <button class="control-btn" id="forward"><i class="fas fa-arrow-up"></i></button>
+        </div>
+        <div class="control-row">
+            <button class="control-btn" id="left"><i class="fas fa-arrow-left"></i></button>
+            <button class="control-btn" id="back"><i class="fas fa-arrow-down"></i></button>
+            <button class="control-btn" id="right"><i class="fas fa-arrow-right"></i></button>
+        </div>
+        <div class="control-row">
+            <button class="control-btn" id="boost"><i class="fas fa-bolt"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // =================== ENHANCED GAME STATE ===================
+        const gameState = {
+            // Player stats
+            score: 0,
+            currentDirectorIndex: 0,
+            correctlyIdentified: 0,
+            missionStartTime: null,
+            missionTime: 0,
+            isInQuiz: false,
+            currentDepartment: 'tech',
+            playerName: '',
+            playerDivision: '',
+            
+            // Drag & Drop state
+            quizActive: false,
+            quizTimeLeft: 180, // 3 minutes for matching challenge
+            quizTimer: null,
+            currentStreak: 0,
+            matches: {}, // Stores directorId -> name matches
+            usedNames: new Set(), // Track which names have been used
+            
+            // Enhanced Tech Practice Directors Data
+            techDirectors: [
+                {
+                    id: 1,
+                    name: "Alex Chen",
+                    title: "Chief Technology Officer",
+                    fact: "Led digital transformation for 50+ enterprise clients",
+                    hint: "Strategic technology initiatives",
+                    avatar: "👨‍💼",
+                    tenure: "8 years",
+                    focus: "Digital Transformation, Cloud Strategy, AI Integration",
+                    achievement: "Led $50M digital transformation program for Fortune 500 clients",
+                    bio: "With over 15 years in technology leadership, Alex specializes in aligning technology strategy with business objectives."
+                },
+                {
+                    id: 2,
+                    name: "Sarah Johnson",
+                    title: "VP of Engineering",
+                    fact: "Built scalable platforms serving 10M+ users",
+                    hint: "Platform engineering leadership",
+                    avatar: "👩‍💼",
+                    tenure: "6 years",
+                    focus: "Platform Engineering, DevOps, Microservices",
+                    achievement: "Reduced system downtime by 95% through infrastructure improvements",
+                    bio: "Sarah has a track record of building high-performing engineering teams and scalable architectures."
+                },
+                {
+                    id: 3,
+                    name: "Michael Rodriguez",
+                    title: "Director of AI Research",
+                    fact: "Published 20+ papers on machine learning",
+                    hint: "AI and research focus",
+                    avatar: "👨‍🔬",
+                    tenure: "4 years",
+                    focus: "Machine Learning, Natural Language Processing, Computer Vision",
+                    achievement: "Developed AI solution that improved operational efficiency by 40%",
+                    bio: "Michael leads our AI research initiatives, focusing on practical applications of machine learning."
+                },
+                {
+                    id: 4,
+                    name: "Priya Sharma",
+                    title: "Cloud Infrastructure Lead",
+                    fact: "Migrated 1000+ servers to cloud platforms",
+                    hint: "Cloud transformation expert",
+                    avatar: "👩‍💻",
+                    tenure: "5 years",
+                    focus: "Cloud Migration, Kubernetes, Infrastructure as Code",
+                    achievement: "Saved $8M annually through cloud optimization",
+                    bio: "Priya specializes in cloud strategy and implementation, with expertise across AWS, Azure, and GCP."
+                },
+                {
+                    id: 5,
+                    name: "David Kim",
+                    title: "Head of Cybersecurity",
+                    fact: "Protected systems from 5000+ cyber attacks",
+                    hint: "Security and compliance",
+                    avatar: "👨‍💂",
+                    tenure: "7 years",
+                    focus: "Cybersecurity, Compliance, Risk Management",
+                    achievement: "Implemented zero-trust security framework across the organization",
+                    bio: "David ensures our systems and data remain secure while maintaining compliance with global regulations."
+                },
+                {
+                    id: 6,
+                    name: "Elena Petrova",
+                    title: "CTO of Emerging Tech",
+                    fact: "Pioneered blockchain implementation for supply chain",
+                    hint: "Emerging technology",
+                    avatar: "👩‍🚀",
+                    tenure: "3 years",
+                    focus: "Blockchain, IoT, Quantum Computing, Edge Computing",
+                    achievement: "Implemented blockchain solution that reduced supply chain costs by 30%",
+                    bio: "Elena explores and implements cutting-edge technologies to create competitive advantages."
+                }
+            ],
+            
+            // Get 6 directors for the matching challenge
+            getDirectorsForMatching: function() {
+                // Return all 6 directors for the matching game
+                return [...this.techDirectors].sort(() => Math.random() - 0.5);
+            },
+            
+            currentChallengeDirectors: [],
+            
+            // Start new mission
+            startNewMission: function() {
+                this.score = 0;
+                this.correctlyIdentified = 0;
+                this.currentStreak = 0;
+                this.missionStartTime = Date.now();
+                this.currentChallengeDirectors = this.getDirectorsForMatching();
+                this.matches = {};
+                this.usedNames = new Set();
+                this.updateHUD();
+                this.showNotification("New Mission Started", "Match 6 directors with their names using drag and drop.", "info");
+            },
+            
+            // Update HUD display
+            updateHUD: function() {
+                document.getElementById('score-display').textContent = this.score;
+                document.getElementById('directors-identified').textContent = 
+                    `${this.correctlyIdentified}/${this.currentChallengeDirectors.length}`;
+                
+                // Update progress
+                const progress = (Object.keys(this.matches).length / this.currentChallengeDirectors.length) * 100;
+                document.getElementById('progress-fill').style.width = `${progress}%`;
+                document.getElementById('progress-percentage').textContent = `${Math.round(progress)}%`;
+            },
+            
+            // Update quiz stats
+            updateQuizStats: function() {
+                document.getElementById('quiz-score').textContent = this.score;
+                const matched = Object.keys(this.matches).length;
+                document.getElementById('quiz-matched').textContent = `${matched}/${this.currentChallengeDirectors.length}`;
+            },
+            
+            // Update mission timer
+            updateTimer: function() {
+                if (this.missionStartTime) {
+                    const elapsed = Math.floor((Date.now() - this.missionStartTime) / 1000);
+                    this.missionTime = elapsed;
+                    const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                    const seconds = (elapsed % 60).toString().padStart(2, '0');
+                    document.getElementById('mission-time').textContent = `${minutes}:${seconds}`;
+                }
+            },
+            
+            // Add a match
+            addMatch: function(directorId, directorName) {
+                this.matches[directorId] = directorName;
+                this.usedNames.add(directorName);
+                this.updateHUD();
+                this.updateQuizStats();
+            },
+            
+            // Remove a match
+            removeMatch: function(directorId) {
+                const name = this.matches[directorId];
+                if (name) {
+                    this.usedNames.delete(name);
+                    delete this.matches[directorId];
+                    this.updateHUD();
+                    this.updateQuizStats();
+                }
+            },
+            
+            // Check if all matches are correct
+            checkAllMatches: function() {
+                let correctCount = 0;
+                this.currentChallengeDirectors.forEach(director => {
+                    if (this.matches[director.id] === director.name) {
+                        correctCount++;
+                    }
+                });
+                this.correctlyIdentified = correctCount;
+                
+                // Calculate score
+                const baseScore = correctCount * 100;
+                const timeBonus = Math.max(0, 300 - this.missionTime) * 2; // Bonus for speed
+                const streakBonus = this.currentStreak * 20;
+                
+                this.score = baseScore + timeBonus + streakBonus;
+                
+                return correctCount;
+            },
+            
+            // Handle skip
+            handleSkip: function() {
+                this.score = Math.max(0, this.score - 100);
+                this.currentStreak = 0;
+                this.updateHUD();
+                this.updateQuizStats();
+                
+                this.showNotification(
+                    "Challenge Skipped",
+                    "-100 points. Take your time to review director information.",
+                    "warning"
+                );
+                
+                return false;
+            },
+            
+            // Show notification
+            showNotification: function(title, message, type) {
+                const notification = document.getElementById('notification');
+                const icon = notification.querySelector('i');
+                const content = notification.querySelector('.notification-content');
+                
+                // Set notification type
+                notification.className = `notification ${type}`;
+                
+                // Set icon based on type
+                if (type === 'success') {
+                    icon.className = 'fas fa-check-circle';
+                } else if (type === 'warning') {
+                    icon.className = 'fas fa-exclamation-triangle';
+                } else {
+                    icon.className = 'fas fa-info-circle';
+                }
+                
+                // Set content
+                content.querySelector('h4').textContent = title;
+                content.querySelector('p').textContent = message;
+                
+                // Show notification
+                notification.style.display = 'flex';
+                
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        };
+
+        // =================== DRAG & DROP FUNCTIONS ===================
+        let draggedItem = null;
+        let currentDropZone = null;
+
+        function setupDragAndDrop() {
+            // Setup draggable name items
+            const nameItems = document.querySelectorAll('.name-item');
+            nameItems.forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+            
+            // Setup drop zones
+            const dropZones = document.querySelectorAll('.drop-zone');
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('dragenter', handleDragEnter);
+                zone.addEventListener('dragleave', handleDragLeave);
+                zone.addEventListener('drop', handleDrop);
+            });
+            
+            // Setup remove buttons
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', handleRemoveMatch);
+            });
+        }
+
+        function handleDragStart(e) {
+            if (this.classList.contains('used')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            draggedItem = this;
+            this.classList.add('dragging');
+            
+            // Set drag image
+            const dragIcon = document.createElement('div');
+            dragIcon.style.background = 'linear-gradient(135deg, #4A90E2, #0066ff)';
+            dragIcon.style.color = 'white';
+            dragIcon.style.padding = '10px';
+            dragIcon.style.borderRadius = '8px';
+            dragIcon.style.position = 'absolute';
+            dragIcon.style.top = '-1000px'; // Hide offscreen
+            dragIcon.textContent = this.textContent;
+            document.body.appendChild(dragIcon);
+            e.dataTransfer.setDragImage(dragIcon, 0, 0);
+            
+            setTimeout(() => {
+                document.body.removeChild(dragIcon);
+            }, 0);
+            
+            e.dataTransfer.setData('text/plain', this.dataset.name);
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            draggedItem = null;
+            
+            // Remove highlight from all drop zones
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('highlight');
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            this.classList.add('highlight');
+            currentDropZone = this;
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('highlight');
+            if (currentDropZone === this) {
+                currentDropZone = null;
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('highlight');
+            
+            if (!draggedItem || this.classList.contains('filled')) {
+                return;
+            }
+            
+            const directorId = this.dataset.directorId;
+            const directorName = draggedItem.dataset.name;
+            
+            // Update UI
+            this.innerHTML = `
+                <div class="dropped-name">
+                    <span>${directorName}</span>
+                    <button class="remove-btn" data-director-id="${directorId}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            this.classList.add('filled');
+            
+            // Mark name as used
+            draggedItem.classList.add('used');
+            
+            // Add match to game state
+            gameState.addMatch(parseInt(directorId), directorName);
+            
+            // Update feedback
+            const director = gameState.currentChallengeDirectors.find(d => d.id === parseInt(directorId));
+            document.getElementById('feedback-text').innerHTML = `
+                <span style="color: #00eeff">✓ ${directorName} assigned to ${director.title} position</span><br>
+                <small style="color:#aaccff">${Object.keys(gameState.matches).length} of 6 directors matched</small>
+            `;
+            
+            // Add event listener to remove button
+            this.querySelector('.remove-btn').addEventListener('click', handleRemoveMatch);
+            
+            // Check if all are matched
+            if (Object.keys(gameState.matches).length === gameState.currentChallengeDirectors.length) {
+                document.getElementById('feedback-text').innerHTML = `
+                    <span style="color: #ffaa00">✓ All directors matched! Click "Submit Answers" to check your matches.</span>
+                `;
+            }
+        }
+
+        function handleRemoveMatch(e) {
+            e.stopPropagation();
+            
+            const directorId = this.dataset.directorId;
+            const dropZone = this.closest('.drop-zone');
+            const directorName = this.parentElement.querySelector('span').textContent;
+            
+            // Reset drop zone
+            dropZone.innerHTML = `
+                <div class="drop-placeholder">
+                    <i class="fas fa-user-plus"></i> Drag a name here
+                </div>
+            `;
+            dropZone.classList.remove('filled');
+            
+            // Mark name as available again
+            const nameItem = document.querySelector(`.name-item[data-name="${directorName}"]`);
+            if (nameItem) {
+                nameItem.classList.remove('used');
+            }
+            
+            // Remove match from game state
+            gameState.removeMatch(parseInt(directorId));
+            
+            // Update feedback
+            document.getElementById('feedback-text').innerHTML = `
+                <span style="color: #ffaa00">↺ ${directorName} removed. Drag a new name to assign.</span><br>
+                <small style="color:#aaccff">${Object.keys(gameState.matches).length} of 6 directors matched</small>
+            `;
+        }
+
+        function resetAllMatches() {
+            // Clear all drop zones
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.innerHTML = `
+                    <div class="drop-placeholder">
+                        <i class="fas fa-user-plus"></i> Drag a name here
+                    </div>
+                `;
+                zone.classList.remove('filled');
+                zone.classList.remove('highlight');
+            });
+            
+            // Mark all names as available
+            document.querySelectorAll('.name-item').forEach(item => {
+                item.classList.remove('used');
+            });
+            
+            // Reset game state
+            gameState.matches = {};
+            gameState.usedNames = new Set();
+            gameState.updateHUD();
+            gameState.updateQuizStats();
+            
+            // Reset feedback
+            document.getElementById('feedback-text').textContent = "Drag and drop director names onto the empty slots below each avatar";
+            
+            gameState.showNotification("Matches Reset", "All matches have been cleared. Start again!", "info");
+        }
+
+        // =================== 3D VARIABLES ===================
+        let scene, camera, renderer;
+        let spaceship = null;
+        let techPlanet = null;
+        let isLaunching = false;
+        let keys = {};
+        let targetIndicator = null;
+        let isNearPlanet = false;
+        let canLand = false;
+
+        // =================== INITIALIZE 3D SCENE ===================
+        function init3DScene() {
+            try {
+                // Create scene
+                scene = new THREE.Scene();
+                scene.fog = new THREE.Fog(0x000010, 50, 300);
+
+                // Create camera
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+                camera.position.set(0, 5, 30);
+
+                // Create renderer
+                renderer = new THREE.WebGLRenderer({ 
+                    antialias: true, 
+                    alpha: true
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                
+                const container = document.getElementById('scene-container');
+                container.appendChild(renderer.domElement);
+
+                // Add enhanced lighting
+                const ambientLight = new THREE.AmbientLight(0x333366, 0.6);
+                scene.add(ambientLight);
+
+                const mainLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+                mainLight.position.set(10, 20, 15);
+                scene.add(mainLight);
+
+                const fillLight = new THREE.HemisphereLight(0x4488FF, 0x002244, 0.3);
+                scene.add(fillLight);
+
+                // Create enhanced starfield
+                createStarfield();
+
+                // Create Tech Practice Planet
+                createTechPlanet();
+
+                // Create spaceship
+                createSpaceship();
+
+                // Setup controls
+                setupKeyboardControls();
+                
+                // Start animation loop
+                animate();
+                
+                console.log("3D scene initialized successfully!");
+                return true;
+            } catch (error) {
+                console.error("Failed to initialize 3D scene:", error);
+                return false;
+            }
+        }
+
+        // =================== CREATE ENHANCED STARFIELD ===================
+        function createStarfield() {
+            const starCount = 2000;
+            const geometry = new THREE.BufferGeometry();
+            const material = new THREE.PointsMaterial({
+                color: 0xFFFFFF,
+                size: 0.15,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+            
+            for (let i = 0; i < starCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 1000;
+                positions[i + 1] = (Math.random() - 0.5) * 1000;
+                positions[i + 2] = (Math.random() - 0.5) * 1000;
+                
+                // Add some color variation
+                const colorValue = 0.7 + Math.random() * 0.3;
+                colors[i] = colorValue;
+                colors[i + 1] = colorValue;
+                colors[i + 2] = colorValue;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            material.vertexColors = true;
+            
+            const stars = new THREE.Points(geometry, material);
+            scene.add(stars);
+        }
+
+        // =================== CREATE ENHANCED TECH PLANET ===================
+        function createTechPlanet() {
+            const planetGroup = new THREE.Group();
+            
+            // Main planet with enhanced texture
+            const geometry = new THREE.SphereGeometry(5, 64, 64);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x4A90E2,
+                shininess: 100,
+                specular: 0x444444,
+                emissive: 0x1A3A6A,
+                emissiveIntensity: 0.5
+            });
+            
+            const planet = new THREE.Mesh(geometry, material);
+            planetGroup.add(planet);
+
+            // Enhanced atmosphere with multiple layers
+            const atmosphereGeometry = new THREE.SphereGeometry(5.3, 64, 64);
+            const atmosphereMaterial = new THREE.MeshPhongMaterial({
+                color: 0x4A90E2,
+                transparent: true,
+                opacity: 0.15,
+                side: THREE.BackSide
+            });
+            
+            const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+            planetGroup.add(atmosphere);
+
+            // Outer atmosphere glow
+            const outerAtmosphereGeometry = new THREE.SphereGeometry(5.8, 64, 64);
+            const outerAtmosphereMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00EEFF,
+                transparent: true,
+                opacity: 0.05,
+                side: THREE.BackSide
+            });
+            
+            const outerAtmosphere = new THREE.Mesh(outerAtmosphereGeometry, outerAtmosphereMaterial);
+            planetGroup.add(outerAtmosphere);
+
+            // Tech rings (orbiting satellites) - multiple rings
+            for (let i = 0; i < 3; i++) {
+                const ringRadius = 8 + i * 1.5;
+                const ringGeometry = new THREE.TorusGeometry(ringRadius, 0.2 + i * 0.1, 16, 100);
+                const ringMaterial = new THREE.MeshPhongMaterial({
+                    color: 0x00EEFF,
+                    emissive: 0x0066FF,
+                    emissiveIntensity: 0.3 + i * 0.2,
+                    transparent: true,
+                    opacity: 0.7
+                });
+                
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.rotation.x = Math.PI / 2;
+                ring.rotation.y = i * Math.PI / 6; // Stagger rings
+                planetGroup.add(ring);
+            }
+
+            // City lights with random placement
+            const lightsGeometry = new THREE.SphereGeometry(5.05, 64, 64);
+            const lightsMaterial = new THREE.MeshBasicMaterial({
+                color: 0xFFFFFF,
+                transparent: true,
+                opacity: 0.2
+            });
+            
+            const lights = new THREE.Mesh(lightsGeometry, lightsMaterial);
+            planetGroup.add(lights);
+
+            // Position planet
+            planetGroup.position.set(0, 0, -80);
+            
+            scene.add(planetGroup);
+            techPlanet = planetGroup;
+        }
+
+        // =================== CREATE ENHANCED SPACESHIP ===================
+        function createSpaceship() {
+            const shipGroup = new THREE.Group();
+
+            // Main body - more detailed
+            const bodyGeometry = new THREE.ConeGeometry(1.2, 5, 10);
+            const bodyMaterial = new THREE.MeshPhongMaterial({
+                color: 0xCCCCCC,
+                shininess: 150,
+                specular: 0x666666
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.rotation.x = Math.PI / 2;
+            shipGroup.add(body);
+
+            // Cockpit with reflection
+            const cockpitGeometry = new THREE.SphereGeometry(0.9, 24, 24);
+            const cockpitMaterial = new THREE.MeshPhongMaterial({
+                color: 0x88CCFF,
+                transparent: true,
+                opacity: 0.8,
+                shininess: 200,
+                specular: 0xFFFFFF
+            });
+            const cockpit = new THREE.Mesh(cockpitGeometry, cockpitMaterial);
+            cockpit.position.z = 1.5;
+            shipGroup.add(cockpit);
+
+            // Enhanced wings with details
+            const wingGeometry = new THREE.BoxGeometry(3.5, 0.15, 2);
+            const wingMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x3366CC,
+                shininess: 100
+            });
+            const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            leftWing.position.x = -2.2;
+            leftWing.position.z = -0.5;
+            shipGroup.add(leftWing);
+
+            const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            rightWing.position.x = 2.2;
+            rightWing.position.z = -0.5;
+            shipGroup.add(rightWing);
+
+            // Engine glow with multiple layers
+            const engineOuterGeometry = new THREE.SphereGeometry(0.6, 16, 16);
+            const engineOuterMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00EEFF,
+                transparent: true,
+                opacity: 0.7
+            });
+            const engineOuter = new THREE.Mesh(engineOuterGeometry, engineOuterMaterial);
+            engineOuter.position.z = -2.5;
+            shipGroup.add(engineOuter);
+
+            const engineInnerGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+            const engineInnerMaterial = new THREE.MeshBasicMaterial({
+                color: 0xFF4500,
+                transparent: true,
+                opacity: 0.9
+            });
+            const engineInner = new THREE.Mesh(engineInnerGeometry, engineInnerMaterial);
+            engineInner.position.z = -2.5;
+            shipGroup.add(engineInner);
+
+            // Position
+            shipGroup.position.set(0, 2, 20);
+            shipGroup.rotation.y = Math.PI;
+            
+            scene.add(shipGroup);
+            spaceship = shipGroup;
+            
+            // Store ship data
+            spaceship.userData = {
+                velocity: new THREE.Vector3(0, 0, 0),
+                maxSpeed: 1.8,
+                acceleration: 0.04,
+                deceleration: 0.02,
+                engine: { outer: engineOuter, inner: engineInner }
+            };
+        }
+
+        // =================== ENHANCED LAUNCH SEQUENCE ===================
+        function startLaunchSequence() {
+            console.log("Starting enhanced launch sequence...");
+            isLaunching = true;
+            
+            const loadingScreen = document.getElementById('loading-screen');
+            const launchText = document.getElementById('launch-text');
+            const launchProgress = document.getElementById('launch-progress');
+            
+            loadingScreen.style.display = 'flex';
+            launchProgress.style.width = '0%';
+            
+            const steps = [
+                { text: "SYSTEMS CHECK...", progress: 15, duration: 800 },
+                { text: "PLAYER PROFILE LOADED...", progress: 25, duration: 700 },
+                { text: "TRAINING MODULE INITIALIZED...", progress: 40, duration: 900 },
+                { text: "ENGINES IGNITION...", progress: 55, duration: 800 },
+                { text: "MISSION BRIEFING LOADED...", progress: 70, duration: 700 },
+                { text: "LAUNCH SEQUENCE INITIATED...", progress: 85, duration: 600 },
+                { text: "3... 2... 1... LIFTOFF!", progress: 100, duration: 1200 }
+            ];
+            
+            let currentStep = 0;
+            
+            function nextStep() {
+                if (currentStep >= steps.length) {
+                    // Launch complete
+                    console.log("Launch sequence complete!");
+                    loadingScreen.style.display = 'none';
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('hud').style.display = 'block';
+                    document.getElementById('mission-controls').style.display = 'block';
+                    isLaunching = false;
+                    
+                    // Start mission
+                    gameState.startNewMission();
+                    
+                    // Create target indicator
+                    createTargetIndicator();
+                    
+                    return;
+                }
+                
+                const step = steps[currentStep];
+                launchText.textContent = step.text;
+                launchProgress.style.width = `${step.progress}%`;
+                
+                // Engine effects
+                if (step.text.includes("ENGINES") || step.text.includes("LIFTOFF")) {
+                    if (spaceship && spaceship.userData.engine) {
+                        spaceship.userData.engine.inner.material.color.setHex(0xFF4500);
+                        spaceship.userData.engine.outer.material.color.setHex(0xFFAA00);
+                        spaceship.userData.engine.inner.scale.set(1.8, 1.8, 2);
+                        spaceship.userData.engine.outer.scale.set(1.5, 1.5, 1.5);
+                    }
+                }
+                
+                setTimeout(() => {
+                    if (step.text.includes("LIFTOFF")) {
+                        setTimeout(() => {
+                            if (spaceship && spaceship.userData.engine) {
+                                spaceship.userData.engine.inner.material.color.setHex(0xFF4500);
+                                spaceship.userData.engine.outer.material.color.setHex(0x00EEFF);
+                                spaceship.userData.engine.inner.scale.set(1, 1, 1);
+                                spaceship.userData.engine.outer.scale.set(1, 1, 1);
+                            }
+                        }, 500);
+                    }
+                    currentStep++;
+                    nextStep();
+                }, step.duration);
+            }
+            
+            nextStep();
+        }
+
+        // =================== ENHANCED TARGET INDICATOR ===================
+        function createTargetIndicator() {
+            targetIndicator = document.createElement('div');
+            targetIndicator.className = 'target-indicator';
+            targetIndicator.innerHTML = '<i class="fas fa-bullseye"></i> <span id="target-text">TARGET: TECH PRACTICE PLANET</span>';
+            document.body.appendChild(targetIndicator);
+        }
+
+        // =================== ENHANCED SPACESHIP CONTROLS ===================
+        function setupKeyboardControls() {
+            window.addEventListener('keydown', (e) => {
+                keys[e.key.toLowerCase()] = true;
+                if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'w', 'a', 's', 'd', 'e'].includes(e.key.toLowerCase())) {
+                    e.preventDefault();
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+            });
+        }
+
+        function updateSpaceshipControls() {
+            if (!spaceship || isLaunching || gameState.isInQuiz) return;
+            
+            const shipData = spaceship.userData;
+            const acceleration = shipData.acceleration;
+            const deceleration = shipData.deceleration;
+            const maxSpeed = shipData.maxSpeed;
+            
+            // Get control inputs
+            let forward = keys['arrowup'] || keys['w'] || false;
+            let back = keys['arrowdown'] || keys['s'] || false;
+            let left = keys['arrowleft'] || keys['a'] || false;
+            let right = keys['arrowright'] || keys['d'] || false;
+            let boost = keys[' '] || false;
+            let land = keys['e'] || false;
+
+            // Calculate movement direction
+            const direction = new THREE.Vector3(0, 0, 0);
+            if (forward) direction.z -= 1;
+            if (back) direction.z += 1;
+            if (left) direction.x -= 1;
+            if (right) direction.x += 1;
+            direction.normalize();
+            
+            // Apply acceleration
+            if (direction.length() > 0) {
+                shipData.velocity.x += direction.x * acceleration;
+                shipData.velocity.y += direction.y * acceleration;
+                shipData.velocity.z += direction.z * acceleration;
+                
+                // Boost mode
+                if (boost) {
+                    shipData.velocity.multiplyScalar(1.5);
+                    if (shipData.engine) {
+                        shipData.engine.inner.material.color.setHex(0xFF4500);
+                        shipData.engine.outer.material.color.setHex(0xFFAA00);
+                    }
+                } else if (shipData.engine) {
+                    shipData.engine.inner.material.color.setHex(0xFF4500);
+                    shipData.engine.outer.material.color.setHex(0x00EEFF);
+                }
+            } else {
+                // Apply deceleration when no input
+                shipData.velocity.multiplyScalar(1 - deceleration);
+            }
+            
+            // Limit speed
+            const currentSpeed = shipData.velocity.length();
+            if (currentSpeed > maxSpeed) {
+                shipData.velocity.normalize().multiplyScalar(maxSpeed);
+            }
+            
+            // Apply velocity
+            spaceship.position.x += shipData.velocity.x;
+            spaceship.position.y += shipData.velocity.y;
+            spaceship.position.z += shipData.velocity.z;
+            
+            // Update engine glow based on speed
+            if (shipData.engine) {
+                const speedRatio = currentSpeed / maxSpeed;
+                const engineScale = 1 + speedRatio * 0.5;
+                shipData.engine.inner.scale.set(engineScale * 0.7, engineScale * 0.7, engineScale * 1.2);
+                shipData.engine.outer.scale.set(engineScale, engineScale, engineScale * 0.8);
+                
+                // Pulsing effect
+                const pulse = 0.8 + Math.sin(Date.now() * 0.01) * 0.2;
+                shipData.engine.inner.material.opacity = 0.7 * pulse;
+                shipData.engine.outer.material.opacity = 0.5 * pulse;
+            }
+            
+            // Check distance to planet
+            if (techPlanet) {
+                const distance = spaceship.position.distanceTo(techPlanet.position);
+                isNearPlanet = distance < 25;
+                canLand = distance < 12;
+                
+                // Update target indicator
+                if (targetIndicator) {
+                    const targetText = document.getElementById('target-text');
+                    if (canLand) {
+                        targetText.innerHTML = '🛬 PRESS <kbd>E</kbd> TO LAND';
+                        targetIndicator.style.color = '#00ff88';
+                        targetIndicator.style.borderColor = 'rgba(0, 255, 136, 0.5)';
+                        targetIndicator.style.textShadow = '0 0 10px rgba(0, 255, 136, 0.8)';
+                    } else if (isNearPlanet) {
+                        targetText.textContent = '🎯 APPROACHING TECH PRACTICE PLANET';
+                        targetIndicator.style.color = '#ffaa00';
+                        targetIndicator.style.borderColor = 'rgba(255, 170, 0, 0.5)';
+                    } else {
+                        targetText.textContent = '🎯 TARGET: TECH PRACTICE PLANET';
+                        targetIndicator.style.color = '#ffaa00';
+                        targetIndicator.style.borderColor = 'rgba(255, 170, 0, 0.5)';
+                    }
+                }
+                
+                // Handle landing
+                if (land && canLand && !gameState.isInQuiz) {
+                    keys['e'] = false; // Prevent multiple triggers
+                    startLandingSequence();
+                }
+            }
+            
+            // Smooth camera follow with damping
+            const cameraTargetX = spaceship.position.x;
+            const cameraTargetY = spaceship.position.y + 5;
+            const cameraTargetZ = spaceship.position.z + 18;
+            
+            camera.position.x += (cameraTargetX - camera.position.x) * 0.05;
+            camera.position.y += (cameraTargetY - camera.position.y) * 0.05;
+            camera.position.z += (cameraTargetZ - camera.position.z) * 0.05;
+            
+            // Look slightly ahead of the ship
+            const lookAtTarget = new THREE.Vector3(
+                spaceship.position.x,
+                spaceship.position.y,
+                spaceship.position.z - 5
+            );
+            camera.lookAt(lookAtTarget);
+        }
+
+        // =================== ENHANCED LANDING SEQUENCE ===================
+        function startLandingSequence() {
+            console.log("Starting enhanced landing sequence...");
+            
+            // Disable spaceship controls
+            gameState.isInQuiz = true;
+            
+            // Show landing transition screen
+            const landingTransition = document.getElementById('landing-transition');
+            const landingCountdown = document.getElementById('landing-countdown');
+            const landingProgress = document.getElementById('landing-progress-bar');
+            
+            landingTransition.style.display = 'flex';
+            
+            // Landing countdown with enhanced effects
+            let countdown = 3;
+            landingCountdown.textContent = countdown;
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                landingCountdown.textContent = countdown;
+                landingProgress.style.width = `${((3 - countdown) / 3) * 100}%`;
+                
+                // Visual effect on countdown
+                if (countdown > 0) {
+                    landingCountdown.style.transform = `scale(1.2)`;
+                    setTimeout(() => {
+                        landingCountdown.style.transform = `scale(1)`;
+                    }, 200);
+                }
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    
+                    // Hide landing transition
+                    setTimeout(() => {
+                        landingTransition.style.display = 'none';
+                        
+                        // Show landing effect
+                        const planetLanding = document.getElementById('planet-landing');
+                        planetLanding.style.display = 'block';
+                        
+                        // Smooth camera transition to planet
+                        let landingProgress = 0;
+                        const landingInterval = setInterval(() => {
+                            landingProgress += 0.02;
+                            
+                            // Move camera to planet
+                            camera.position.x += (techPlanet.position.x - camera.position.x) * 0.1;
+                            camera.position.y += (techPlanet.position.y + 8 - camera.position.y) * 0.1;
+                            camera.position.z += (techPlanet.position.z + 15 - camera.position.z) * 0.1;
+                            camera.lookAt(techPlanet.position);
+                            
+                            // Move spaceship toward planet
+                            spaceship.position.x += (techPlanet.position.x - spaceship.position.x) * 0.05;
+                            spaceship.position.y += (techPlanet.position.y + 2 - spaceship.position.y) * 0.05;
+                            spaceship.position.z += (techPlanet.position.z + 5 - spaceship.position.z) * 0.05;
+                            
+                            if (landingProgress >= 1) {
+                                clearInterval(landingInterval);
+                                
+                                // Start quiz after landing sequence
+                                setTimeout(() => {
+                                    planetLanding.style.display = 'none';
+                                    startDragDropQuiz();
+                                }, 1000);
+                            }
+                        }, 16);
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        // =================== DRAG & DROP QUIZ SYSTEM ===================
+        function startDragDropQuiz() {
+            console.log("Starting drag and drop matching challenge...");
+            
+            // Update HUD
+            document.getElementById('mission-status').textContent = 'MATCHING DIRECTORS';
+            
+            // Clear previous content
+            const directorsGrid = document.getElementById('directors-grid');
+            const namesList = document.getElementById('names-list');
+            
+            directorsGrid.innerHTML = '';
+            namesList.innerHTML = '';
+            
+            // Shuffle directors
+            const shuffledDirectors = [...gameState.currentChallengeDirectors].sort(() => Math.random() - 0.5);
+            
+            // Create director cards with drop zones
+            shuffledDirectors.forEach(director => {
+                const directorCard = document.createElement('div');
+                directorCard.className = 'director-card';
+                directorCard.innerHTML = `
+                    <div class="director-avatar">${director.avatar}</div>
+                    <div class="director-info">
+                        <div class="director-title">${director.title}</div>
+                        <div class="director-hint">${director.hint}</div>
+                    </div>
+                    <div class="drop-zone" data-director-id="${director.id}">
+                        <div class="drop-placeholder">
+                            <i class="fas fa-user-plus"></i> Drag a name here
+                        </div>
+                    </div>
+                `;
+                directorsGrid.appendChild(directorCard);
+            });
+            
+            // Create name items (shuffled)
+            const shuffledNames = [...gameState.currentChallengeDirectors]
+                .map(d => d.name)
+                .sort(() => Math.random() - 0.5);
+            
+            shuffledNames.forEach(name => {
+                const nameItem = document.createElement('div');
+                nameItem.className = 'name-item';
+                nameItem.textContent = name;
+                nameItem.dataset.name = name;
+                nameItem.draggable = true;
+                namesList.appendChild(nameItem);
+            });
+            
+            // Reset feedback
+            document.getElementById('feedback-text').textContent = "Drag and drop director names onto the empty slots below each avatar";
+            
+            // Reset buttons
+            document.getElementById('skip-btn').disabled = false;
+            document.getElementById('submit-btn').disabled = false;
+            
+            // Update quiz stats
+            gameState.updateQuizStats();
+            
+            // Setup drag and drop
+            setupDragAndDrop();
+            
+            // Show quiz panel and timer
+            document.getElementById('quiz-panel').style.display = 'block';
+            document.getElementById('quiz-timer').style.display = 'flex';
+            
+            // Start quiz timer
+            startQuizTimer();
+        }
+
+        function startQuizTimer() {
+            gameState.quizTimeLeft = 180;
+            const timerElement = document.getElementById('quiz-timer');
+            const timeLeftElement = document.getElementById('quiz-time-left');
+            
+            timerElement.innerHTML = `<i class="fas fa-hourglass-half"></i> ${Math.floor(gameState.quizTimeLeft/60)}:${(gameState.quizTimeLeft%60).toString().padStart(2, '0')}`;
+            timeLeftElement.textContent = `${gameState.quizTimeLeft}s`;
+            
+            timerElement.style.color = '#00eeff';
+            timerElement.style.borderColor = '#4A90E2';
+            
+            gameState.quizTimer = setInterval(() => {
+                gameState.quizTimeLeft--;
+                
+                const minutes = Math.floor(gameState.quizTimeLeft / 60);
+                const seconds = gameState.quizTimeLeft % 60;
+                
+                timerElement.innerHTML = `<i class="fas fa-hourglass-${gameState.quizTimeLeft > 90 ? 'half' : 'end'}"></i> ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                timeLeftElement.textContent = `${gameState.quizTimeLeft}s`;
+                
+                // Change color when time is running low
+                if (gameState.quizTimeLeft <= 60) {
+                    timerElement.style.color = '#ffaa00';
+                    timerElement.style.borderColor = '#ffaa00';
+                    
+                    if (gameState.quizTimeLeft <= 30) {
+                        timerElement.style.color = '#ff5555';
+                        timerElement.style.borderColor = '#ff5555';
+                        
+                        // Pulsing effect for last 10 seconds
+                        if (gameState.quizTimeLeft <= 10) {
+                            const pulse = gameState.quizTimeLeft % 2 === 0 ? 1 : 0.7;
+                            timerElement.style.opacity = pulse;
+                        }
+                    }
+                }
+                
+                if (gameState.quizTimeLeft <= 0) {
+                    clearInterval(gameState.quizTimer);
+                    // Auto-submit if time runs out
+                    submitDragDropQuiz();
+                }
+            }, 1000);
+        }
+
+        function skipDragDropQuiz() {
+            gameState.handleSkip();
+            
+            document.getElementById('feedback-text').innerHTML = `
+                <span class="incorrect-feedback">
+                    <i class="fas fa-forward"></i> Challenge Skipped! -100 points
+                </span>
+                <div class="feedback-detail">
+                    Moving to next challenge...
+                </div>
+            `;
+            
+            // Disable controls
+            document.getElementById('skip-btn').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            
+            // Stop timer
+            clearInterval(gameState.quizTimer);
+            document.getElementById('quiz-timer').style.display = 'none';
+            
+            // Show correct answers
+            showCorrectAnswers();
+            
+            // Move to completion after delay
+            setTimeout(() => {
+                completeMission();
+            }, 3000);
+        }
+
+        function submitDragDropQuiz() {
+            // Stop quiz timer
+            clearInterval(gameState.quizTimer);
+            document.getElementById('quiz-timer').style.display = 'none';
+            
+            // Disable controls
+            document.getElementById('skip-btn').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            
+            // Check all matches
+            const correctCount = gameState.checkAllMatches();
+            const totalDirectors = gameState.currentChallengeDirectors.length;
+            
+            // Show results
+            if (correctCount === totalDirectors) {
+                // Perfect score
+                gameState.currentStreak++;
+                document.getElementById('feedback-text').innerHTML = `
+                    <span class="correct-feedback">
+                        <i class="fas fa-check-circle"></i> Perfect! All ${totalDirectors} directors correctly matched!
+                    </span>
+                    <div class="feedback-detail">
+                        +${correctCount * 100} points for correct matches<br>
+                        +${Math.max(0, 300 - gameState.missionTime) * 2} time bonus<br>
+                        +${gameState.currentStreak * 20} streak bonus
+                    </div>
+                `;
+                gameState.showNotification(
+                    "Perfect Match!",
+                    `All ${totalDirectors} directors correctly identified! +${gameState.score} points`,
+                    "success"
+                );
+                
+                // Highlight all as correct
+                document.querySelectorAll('.drop-zone').forEach(zone => {
+                    zone.classList.add('correct');
+                });
+            } else {
+                // Some incorrect
+                gameState.currentStreak = 0;
+                document.getElementById('feedback-text').innerHTML = `
+                    <span class="incorrect-feedback">
+                        <i class="fas fa-times-circle"></i> ${correctCount} of ${totalDirectors} directors correctly matched
+                    </span>
+                    <div class="feedback-detail">
+                        +${correctCount * 100} points for correct matches<br>
+                        ${totalDirectors - correctCount} incorrect matches
+                    </div>
+                `;
+                gameState.showNotification(
+                    "Partial Match",
+                    `${correctCount} of ${totalDirectors} directors correctly identified. ${gameState.score} points`,
+                    correctCount >= totalDirectors/2 ? "info" : "warning"
+                );
+                
+                // Highlight correct and incorrect
+                gameState.currentChallengeDirectors.forEach(director => {
+                    const dropZone = document.querySelector(`.drop-zone[data-director-id="${director.id}"]`);
+                    if (dropZone) {
+                        if (gameState.matches[director.id] === director.name) {
+                            dropZone.classList.add('correct');
+                        } else {
+                            dropZone.classList.add('incorrect');
+                        }
+                    }
+                });
+            }
+            
+            // Show correct answers
+            showCorrectAnswers();
+            
+            // Move to completion after delay
+            setTimeout(() => {
+                completeMission();
+            }, 4000);
+        }
+
+        function showCorrectAnswers() {
+            // Disable all drag and drop
+            document.querySelectorAll('.name-item').forEach(item => {
+                item.draggable = false;
+                item.style.cursor = 'default';
+            });
+            
+            // Show correct names in drop zones
+            gameState.currentChallengeDirectors.forEach(director => {
+                const dropZone = document.querySelector(`.drop-zone[data-director-id="${director.id}"]`);
+                if (dropZone && (!gameState.matches[director.id] || gameState.matches[director.id] !== director.name)) {
+                    // Show correct answer
+                    dropZone.innerHTML = `
+                        <div class="dropped-name" style="color: ${gameState.matches[director.id] ? '#ff5555' : '#00eeff'}">
+                            <span>${director.name}</span>
+                            <div style="font-size: 0.8rem; color: #aaccff; margin-top: 5px;">
+                                ${gameState.matches[director.id] ? `(You selected: ${gameState.matches[director.id]})` : 'Correct Answer'}
+                            </div>
+                        </div>
+                    `;
+                    dropZone.classList.add('filled');
+                }
+            });
+        }
+
+        // =================== ENHANCED MISSION COMPLETION ===================
+        function completeMission() {
+            console.log("Mission completed!");
+            
+            // Hide quiz panel
+            document.getElementById('quiz-panel').style.display = 'none';
+            document.getElementById('quiz-timer').style.display = 'none';
+            
+            // Calculate performance rating
+            const accuracy = Math.round((gameState.correctlyIdentified / gameState.currentChallengeDirectors.length) * 100);
+            let performance = "Good";
+            let badge = "🎖️";
+            
+            if (accuracy === 100) {
+                performance = "Perfect";
+                badge = "🏆";
+                gameState.score += 300; // Bonus for perfect score
+            } else if (accuracy >= 80) {
+                performance = "Excellent";
+                badge = "⭐";
+                gameState.score += 150; // Bonus for excellent performance
+            } else if (accuracy >= 60) {
+                performance = "Good";
+                badge = "🎯";
+                gameState.score += 50; // Bonus for good performance
+            } else {
+                performance = "Needs Practice";
+                badge = "📚";
+            }
+            
+            // Update completion stats
+            const statsGrid = document.getElementById('completion-stats');
+            statsGrid.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${gameState.score}</div>
+                    <div class="stat-label">FINAL SCORE</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${gameState.correctlyIdentified}/${gameState.currentChallengeDirectors.length}</div>
+                    <div class="stat-label">CORRECT MATCHES</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${accuracy}%</div>
+                    <div class="stat-label">ACCURACY</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${document.getElementById('mission-time').textContent}</div>
+                    <div class="stat-label">TOTAL TIME</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${performance}</div>
+                    <div class="stat-label">PERFORMANCE</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${badge}</div>
+                    <div class="stat-label">BADGE</div>
+                </div>
+            `;
+            
+            // Update badge container
+            const badgeContainer = document.querySelector('.badge-container');
+            badgeContainer.innerHTML = `
+                <h3><i class="fas fa-award"></i> ${performance.toUpperCase()} PERFORMANCE BADGE EARNED!</h3>
+                <p class="badge-description">
+                    "You have successfully matched ${gameState.correctlyIdentified} of ${gameState.currentChallengeDirectors.length} technology leaders 
+                    with ${accuracy}% accuracy. ${
+                        accuracy === 100 ? "Perfect knowledge of the Enterprise Technology & Performance leadership team!" :
+                        accuracy >= 80 ? "Excellent understanding of key technology leaders in your division." :
+                        accuracy >= 60 ? "Good identification skills. Review the remaining directors to improve." :
+                        "Consider reviewing the leadership directory to improve your knowledge of key personnel."
+                    }"
+                </p>
+            `;
+            
+            // Show completion panel
+            document.getElementById('completion-panel').style.display = 'block';
+            document.getElementById('mission-status').textContent = 'MISSION COMPLETE';
+            
+            // Show completion notification
+            gameState.showNotification(
+                "Mission Complete!",
+                `${performance} performance with ${accuracy}% accuracy. Final score: ${gameState.score}`,
+                accuracy >= 80 ? "success" : accuracy >= 60 ? "info" : "warning"
+            );
+        }
+
+        function returnToSpace() {
+            // Hide completion panel
+            document.getElementById('completion-panel').style.display = 'none';
+            
+            // Reset camera to follow ship
+            gameState.isInQuiz = false;
+            
+            // Update HUD
+            document.getElementById('mission-status').textContent = 'EXPLORING';
+            
+            // Give player direction to return
+            if (targetIndicator) {
+                document.getElementById('target-text').textContent = '🚀 Ready for next mission';
+                targetIndicator.style.color = '#00eeff';
+                targetIndicator.style.borderColor = 'rgba(0, 238, 255, 0.5)';
+            }
+            
+            // Reset mission for next round
+            gameState.startNewMission();
+            
+            // Move spaceship away from planet
+            spaceship.position.set(0, 2, 20);
+        }
+
+        // =================== ENHANCED ANIMATION LOOP ===================
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.001;
+
+            // Animate planet rotation with slight wobble
+            if (techPlanet) {
+                techPlanet.rotation.y += 0.0015;
+                techPlanet.rotation.x = Math.sin(time * 0.3) * 0.05;
+                techPlanet.position.y = Math.sin(time * 0.5) * 0.8;
+                
+                // Animate rings
+                techPlanet.children.forEach((child, index) => {
+                    if (child.geometry && child.geometry.type === 'TorusGeometry') {
+                        child.rotation.y += 0.002 * (index + 1);
+                    }
+                });
+            }
+
+            // Update spaceship controls
+            updateSpaceshipControls();
+
+            // Update engine pulse
+            if (spaceship && spaceship.userData.engine) {
+                const pulseIntensity = 0.7 + Math.sin(time * 12) * 0.3;
+                spaceship.userData.engine.inner.material.opacity = 0.7 * pulseIntensity;
+                spaceship.userData.engine.outer.material.opacity = 0.5 * pulseIntensity;
+            }
+
+            // Update mission timer
+            gameState.updateTimer();
+
+            renderer.render(scene, camera);
+        }
+
+        // =================== ENHANCED EVENT LISTENERS ===================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Initializing Enhanced Director Space Explorer...");
+            
+            // Initialize 3D scene
+            if (!init3DScene()) {
+                alert("Unable to initialize 3D graphics. Please try with a different browser or check your graphics drivers.");
+                return;
+            }
+            
+            // Setup login button
+            document.getElementById('loginBtn').addEventListener('click', function() {
+                const email = document.getElementById('email').value;
+                const division = document.getElementById('division').value;
+                const terms = document.getElementById('terms').checked;
+                
+                if (!email || !division || !terms) {
+                    gameState.showNotification(
+                        "Missing Information",
+                        "Please fill all fields and agree to terms",
+                        "warning"
+                    );
+                    return;
+                }
+                
+                if (!email.includes('@')) {
+                    gameState.showNotification(
+                        "Invalid Email",
+                        "Please enter a valid corporate email address",
+                        "warning"
+                    );
+                    return;
+                }
+                
+                gameState.playerName = email.split('@')[0];
+                gameState.playerDivision = division;
+                startLaunchSequence();
+            });
+            
+            // Setup demo button
+            document.getElementById('demoBtn').addEventListener('click', function() {
+                document.getElementById('email').value = 'demo@company.com';
+                document.getElementById('division').value = 'etp';
+                document.getElementById('terms').checked = true;
+                gameState.playerName = 'Demo User';
+                gameState.playerDivision = 'etp';
+                startLaunchSequence();
+            });
+            
+            // Setup quiz buttons
+            document.getElementById('submit-btn').addEventListener('click', submitDragDropQuiz);
+            document.getElementById('skip-btn').addEventListener('click', skipDragDropQuiz);
+            document.getElementById('reset-btn').addEventListener('click', resetAllMatches);
+            
+            // Setup completion button
+            document.getElementById('return-to-hub').addEventListener('click', returnToSpace);
+            
+            // Setup control buttons
+            ['forward', 'back', 'left', 'right', 'boost'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.addEventListener('mousedown', () => keys[id] = true);
+                    btn.addEventListener('mouseup', () => keys[id] = false);
+                    btn.addEventListener('mouseleave', () => keys[id] = false);
+                    btn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        keys[id] = true;
+                    });
+                    btn.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        keys[id] = false;
+                    });
+                }
+            });
+            
+            // Handle E key for landing
+            window.addEventListener('keydown', (e) => {
+                if (e.key.toLowerCase() === 'e') {
+                    keys['e'] = true;
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                if (e.key.toLowerCase() === 'e') {
+                    keys['e'] = false;
+                }
+            });
+            
+            // Window resize handler
+            window.addEventListener('resize', function() {
+                if (camera && renderer) {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+            });
+            
+            console.log("Enhanced game initialized successfully!");
+            
+            // Show welcome notification
+            setTimeout(() => {
+                gameState.showNotification(
+                    "Welcome to Director Space Explorer",
+                    "Login to start your corporate leadership training mission",
+                    "info"
+                );
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
